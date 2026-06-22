@@ -7,7 +7,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 if [[ -z "${MANDATORY_MCPS[0]:-}" ]]; then
     readonly MANDATORY_MCPS=(
         "engram-mcp:npx -y engram-mcp@latest:Engram persistent memory"
-        "codebase-memory-mcp:uvx codebase-memory-mcp:Codebase memory graph"
+        "codebase-memory-mcp:curl -fsSL https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/main/install.sh | bash:Codebase memory graph"
         "searxng-mcp:npx -y @kevinwatt/mcp-server-searxng@latest:SearXNG meta search MCP"
     )
 fi
@@ -33,6 +33,17 @@ install_mcp() {
     if [[ "${DRY_RUN:-false}" == "true" ]]; then
         log_info "$(dry_run_prefix)Would run: $cmd"
         return 0
+    fi
+    
+    if [[ "$name" == "codebase-memory-mcp" ]]; then
+        # Special handling for codebase-memory-mcp - use official installer
+        if run_cmd "curl -fsSL https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/main/install.sh | bash" "Install codebase-memory-mcp via official installer"; then
+            log_success "$name installed"
+            return 0
+        else
+            log_warn "$name installation failed (continuing...)"
+            return 1
+        fi
     fi
     
     if run_cmd "$cmd" "Install $name"; then

@@ -110,7 +110,20 @@ get_package_manager() {
 # Version comparison
 version_ge() {
     # Returns 0 if $1 >= $2
-    printf '%s\n%s\n' "$2" "$1" | sort -V -C
+    # BusyBox sort doesn't support -C, use awk instead
+    local v1="$1"
+    local v2="$2"
+    # Simple version comparison using awk
+    awk -v v1="$v1" -v v2="$v2" '
+    BEGIN {
+        split(v1, a, ".");
+        split(v2, b, ".");
+        for (i = 1; i <= 3; i++) {
+            if (a[i] > b[i]) exit 0;
+            if (a[i] < b[i]) exit 1;
+        }
+        exit 0;
+    }'
 }
 
 # Get version number from command output

@@ -1,0 +1,30 @@
+FROM node:20-alpine
+
+# Install system dependencies
+RUN apk add --no-cache \
+    git \
+    docker \
+    curl \
+    python3 \
+    py3-pip \
+    bash
+
+# Install uv via official installer (works with older rust)
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
+
+# Install OpenCode CLI globally
+RUN npm install -g @opencode-ai/cli
+
+# Set working directory
+WORKDIR /workspace
+
+# Copy the configuration
+COPY . .
+
+# Set up environment
+ENV PATH="/usr/local/bin:/usr/bin:/bin:/root/.local/bin"
+ENV NODE_ENV=test
+
+# Default command
+CMD ["/bin/bash"]

@@ -177,7 +177,7 @@
     },
     "codebase-memory": {
       "type": "local",
-      "command": ["uvx", "codebase-memory-mcp"],
+      "command": ["codebase-memory-mcp"],
       "env": {
         "CODEBASE_MEMORY_DB": "~/.codebase-memory/graph.db"
       }
