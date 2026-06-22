@@ -1,0 +1,514 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  // === Models ===
+  // NVIDIA NIM Cloud (primary) + Ollama Local (fallback)
+  "model": "nvidia/nemotron-3-ultra-550b-a55b",
+  "small_model": "moonshotai/kimi-k2.6",
+  "autoupdate": true,
+
+  // Model routing configuration
+  "model_routing": {
+    "providers": {
+      "nvidia_nim": {
+        "enabled": true,
+        "base_url": "https://integrate.api.nvidia.com/v1",
+        "api_key_env": "NVIDIA_API_KEY",
+        "models": {
+          "ultra": "nvidia/nemotron-3-ultra-550b-a55b",
+          "reasoning": "z-ai/glm-5.1",
+          "long_context": "moonshotai/kimi-k2.6"
+        }
+      },
+      "ollama": {
+        "enabled": true,
+        "base_url": "http://localhost:11434/v1",
+        "models": {
+          "fast": "qwen3.5:4b",
+          "coding": "deepseek-coder:6.7b",
+          "efficient": "gemma4:e4b"
+        }
+      }
+    },
+    "routing_rules": {
+      "build": "nvidia_nim:ultra",
+      "plan": "nvidia_nim:reasoning",
+      "security": "nvidia_nim:long_context",
+      "test-writer": "ollama:coding",
+      "docs": "ollama:efficient",
+      "backend/go": "ollama:coding",
+      "backend/rust": "nvidia_nim:ultra",
+      "backend/python": "ollama:fast",
+      "infra/devops": "nvidia_nim:long_context",
+      "infra/data": "nvidia_nim:reasoning",
+      "infra/security": "nvidia_nim:ultra"
+    }
+  },
+
+  // === Formatters ===
+  "formatter": {
+    "biome": {
+      "command": ["npx", "biome", "format", "--write", "$FILE"],
+      "extensions": [".js", ".jsx", ".ts", ".tsx", ".json", ".jsonc"]
+    },
+    "gofmt": {
+      "command": ["gofmt", "-w", "$FILE"],
+      "extensions": [".go"]
+    },
+    "rustfmt": {
+      "command": ["rustfmt", "$FILE"],
+      "extensions": [".rs"]
+    },
+    "ruff": {
+      "command": ["ruff", "format", "$FILE"],
+      "extensions": [".py"]
+    }
+  },
+
+  // === Instructions ===
+  // AGENTS.md auto-loaded from ~/.config/opencode/ and repo root
+  // Knowledge is now in Engram (mem_search/mem_save) — NOT in knowledge/*.md
+
+  // === Permissions (Least Privilege) ===
+  "permission": {
+    "read": {
+      // DENY by default — only .env.example is safe
+      ".env": "deny",
+      ".env.*": "deny",
+      ".env-*": "deny",
+      ".env.example": "allow",
+      "*.env.example": "allow",
+      // Credentials
+      "*id_rsa*": "deny",
+      "*id_ed25519*": "deny",
+      "*id_ecdsa*": "deny",
+      "*.pem": "deny",
+      "*.key": "deny",
+      "*.p12": "deny",
+      "*.pfx": "deny",
+      // Cloud credentials
+      ".aws/credentials": "deny",
+      ".aws/config": "deny",
+      ".gcloud/*": "deny",
+      ".azure/*": "deny",
+      // Database dumps
+      "*.sql.dump": "deny",
+      "*.sql.gz": "deny"
+    },
+    "write": {
+      // Protect critical files
+      ".env": "ask",
+      ".env.*": "ask",
+      ".env-*": "ask"
+    },
+    "external_directory": "ask",
+    "bash": {
+      // === DENY — Never allow ===
+      "sudo *": "deny",
+      "rm -rf /": "deny",
+      "rm -rf /*": "deny",
+      "rm -rf ~": "deny",
+      "rm -rf ~/*": "deny",
+      ":(){:|:&};:": "deny",
+      "chmod 777 *": "deny",
+      "chmod -R 777 *": "deny",
+      "curl * | bash": "deny",
+      "curl * | sh": "deny",
+      "wget * | bash": "deny",
+      "mkfs *": "deny",
+      "dd *": "deny",
+      "> /dev/*": "deny",
+      "docker rm -f *": "deny",
+      "kubectl delete * --force *": "deny",
+      "terraform destroy *": "deny",
+      "terraform apply -auto-approve": "deny",
+
+      // === ASK — Require confirmation ===
+      "git push *": "ask",
+      "git push --force *": "ask",
+      "git reset --hard *": "ask",
+      "docker system prune *": "ask",
+      "docker volume prune *": "ask",
+      "kubectl delete *": "ask",
+      "terraform apply *": "ask",
+      "terraform destroy *": "ask",
+      "dropdb *": "ask",
+      "DROP *": "ask",
+      "TRUNCATE *": "ask",
+      "DELETE FROM *": "ask",
+
+      // === ALLOW — Safe operations ===
+      "git status": "allow",
+      "git diff*": "allow",
+      "git log*": "allow",
+      "git show*": "allow",
+      "git add *": "allow",
+      "git commit *": "allow",
+      "git branch*": "allow",
+      "rg *": "allow",
+      "grep *": "allow",
+      "find *": "allow",
+      "tree *": "allow",
+      "wc *": "allow",
+      "ls *": "allow",
+      "cat *": "allow",
+      "head *": "allow",
+      "tail *": "allow"
+    }
+  },
+
+  // === MCP Servers ===
+  "mcp": {
+    // === UNIVERSAL — Always Active ===
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "fetch": {
+      "type": "local",
+      "command": ["uvx", "mcp-server-fetch"]
+    },
+    "engram": {
+      "type": "local",
+      "command": ["npx", "-y", "engram-mcp@latest"],
+      "env": {
+        "ENGRAM_DB_PATH": "~/.engram/engram.db"
+      }
+    },
+    "codebase-memory": {
+      "type": "local",
+      "command": ["uvx", "codebase-memory-mcp"],
+      "env": {
+        "CODEBASE_MEMORY_DB": "~/.codebase-memory/graph.db"
+      }
+    },
+    "nvidia-nim": {
+      "type": "remote",
+      "url": "https://integrate.api.nvidia.com/mcp",
+      "env": {
+        "NVIDIA_API_KEY": "${NVIDIA_API_KEY}"
+      }
+    },
+
+    // === WEB — Conditional (activate per project) ===
+    "next-devtools": {
+      "type": "local",
+      "command": ["npx", "-y", "next-devtools-mcp@latest"],
+      "condition": "file:next.config.*"
+    },
+    "chrome-devtools": {
+      "type": "local",
+      "command": ["npx", "-y", "chrome-devtools-mcp@latest"],
+      "condition": "file:*.html"
+    },
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "-y", "@playwright/mcp@latest"],
+      "condition": "file:playwright.config.*"
+    },
+
+    // === BACKEND — Conditional ===
+    "postgres": {
+      "type": "local",
+      "command": ["uvx", "mcp-server-postgres"],
+      "env": {
+        "POSTGRES_URL": "${DATABASE_URL}"
+      },
+      "condition": "env:DATABASE_URL"
+    },
+    "sqlite": {
+      "type": "local",
+      "command": ["uvx", "mcp-server-sqlite"],
+      "condition": "file:*.db,*.sqlite,*.sqlite3"
+    },
+
+    // === INFRA — Conditional ===
+    "docker": {
+      "type": "local",
+      "command": ["npx", "-y", "docker-mcp@latest"],
+      "condition": "file:Dockerfile,Composefile,docker-compose.*"
+    },
+    "kubernetes": {
+      "type": "local",
+      "command": ["npx", "-y", "k8s-mcp@latest"],
+      "condition": "file:*.yaml,path:k8s/,path:manifests/"
+    },
+
+    // === DATA — Conditional ===
+    "github": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      },
+      "condition": "git:remote=github"
+    }
+  },
+
+  // === MCP Profiles ===
+  "mcp_profiles": {
+    "web": {
+      "includes": ["next-devtools", "chrome-devtools", "playwright"],
+      "excludes": []
+    },
+    "backend": {
+      "includes": ["postgres", "sqlite"],
+      "excludes": ["next-devtools"]
+    },
+    "infra": {
+      "includes": ["docker", "kubernetes"],
+      "excludes": ["next-devtools", "chrome-devtools"]
+    },
+    "fullstack": {
+      "includes": ["next-devtools", "chrome-devtools", "postgres", "docker"],
+      "excludes": []
+    },
+    "minimal": {
+      "includes": [],
+      "excludes": ["next-devtools", "chrome-devtools", "playwright", "docker", "kubernetes", "postgres", "sqlite"]
+    }
+  },
+
+  // === Agent Overrides ===
+  "agent": {
+    // Build agent — full capability with slight creativity, best quality
+    "build": {
+      "model": "nvidia/nemotron-3-ultra-550b-a55b",
+      "temperature": 0.3
+    },
+    // Plan agent — read-only analysis, reasoning model
+    "plan": {
+      "model": "z-ai/glm-5.1",
+      "temperature": 0.1,
+      "tools": {
+        "write": false,
+        "edit": false,
+        "patch": false
+      },
+      "permission": {
+        "bash": {
+          "git status": "allow",
+          "git diff*": "allow",
+          "git log*": "allow",
+          "git show*": "allow",
+          "git branch*": "allow",
+          "rg *": "allow",
+          "grep *": "allow",
+          "find *": "allow",
+          "tree *": "allow",
+          "wc *": "allow",
+          "head *": "allow",
+          "tail *": "allow",
+          "ls *": "allow",
+          "cat *": "allow",
+          "pnpm exec tsc*": "allow",
+          "pnpm run lint*": "allow",
+          "pnpm test*": "allow",
+          "go vet *": "allow",
+          "go test *": "allow",
+          "go build *": "allow",
+          "cargo check *": "allow",
+          "cargo clippy *": "allow",
+          "cargo test *": "allow",
+          "ruff check *": "allow",
+          "pytest *": "allow",
+          "mypy *": "allow",
+          "docker ps": "allow",
+          "docker images": "allow",
+          "kubectl get *": "allow",
+          "terraform plan *": "allow",
+          "terraform validate *": "allow",
+          "*": "deny"
+        }
+      }
+    },
+    // Security agent — long context for scanning
+    "security": {
+      "model": "moonshotai/kimi-k2.6",
+      "temperature": 0.1,
+      "tools": {
+        "write": false,
+        "edit": false,
+        "patch": false
+      },
+      "permission": {
+        "bash": {
+          "snyk *": "allow",
+          "npm audit *": "allow",
+          "pip-audit *": "allow",
+          "govulncheck *": "allow",
+          "cargo audit *": "allow",
+          "gitleaks *": "allow",
+          "trufflehog *": "allow",
+          "trivy *": "allow",
+          "hadolint *": "allow",
+          "tfsec *": "allow",
+          "checkov *": "allow",
+          "git diff*": "allow",
+          "git log*": "allow",
+          "rg *": "allow",
+          "cat *": "allow",
+          "*": "deny"
+        }
+      },
+      "description": "Security auditor — scans for vulnerabilities using Snyk, govulncheck, cargo audit, trivy, etc. Read-only, reports findings without modification."
+    },
+    // Test writer agent — fast coding model locally
+    "test-writer": {
+      "model": "deepseek-coder:6.7b",
+      "temperature": 0.2,
+      "permission": {
+        "write": {
+          "**/*.test.ts": "allow",
+          "**/*.spec.ts": "allow",
+          "**/*.test.tsx": "allow",
+          "**/*.spec.tsx": "allow",
+          "**/*.test.js": "allow",
+          "**/*.spec.js": "allow",
+          "**/*_test.go": "allow",
+          "**/tests/*.rs": "allow",
+          "**/test_*.py": "allow",
+          "**/*_test.py": "allow",
+          "**/tests/*.py": "allow",
+          "**/*Test.java": "allow",
+          "**/*Tests.java": "allow",
+          "**/*Tests.cs": "allow",
+          "*": "deny"
+        }
+      },
+      "description": "Test specialist — generates comprehensive unit, integration, and e2e tests. Can only write to test files."
+    },
+    // Docs agent — efficient model
+    "docs": {
+      "model": "gemma4:e4b",
+      "temperature": 0.3,
+      "permission": {
+        "write": {
+          "**/*.md": "allow",
+          "**/*.mdx": "allow",
+          "**/*.rst": "allow",
+          "**/*.adoc": "allow",
+          "*": "deny"
+        }
+      },
+      "description": "Documentation writer — generates and updates markdown docs, READMEs, and guides. Can only write to .md/.mdx/.rst/.adoc files."
+    },
+
+    // === NEW: Full-Stack Backend Agents ===
+    "backend/go": {
+      "model": "deepseek-coder:6.7b",
+      "temperature": 0.2,
+      "permission": {
+        "bash": {
+          "go *": "allow",
+          "gofmt *": "allow",
+          "goimports *": "allow",
+          "golangci-lint *": "allow",
+          "rg *": "allow",
+          "git *": "allow",
+          "*": "deny"
+        }
+      },
+      "description": "Go backend specialist — writes idiomatic Go, knows stdlib, goroutines, channels, interfaces, and the Go ecosystem. Handles go vet, go test, and go build."
+    },
+    "backend/rust": {
+      "model": "nvidia/nemotron-3-ultra-550b-a55b",
+      "temperature": 0.2,
+      "permission": {
+        "bash": {
+          "cargo *": "allow",
+          "rustfmt *": "allow",
+          "rustup *": "allow",
+          "rg *": "allow",
+          "git *": "allow",
+          "*": "deny"
+        }
+      },
+      "description": "Rust specialist — writes safe, idiomatic Rust. Knows ownership, lifetimes, traits, async, and the cargo ecosystem. Handles cargo check, clippy, and test."
+    },
+    "backend/python": {
+      "model": "qwen3.5:4b",
+      "temperature": 0.2,
+      "permission": {
+        "bash": {
+          "python *": "allow",
+          "pip *": "allow",
+          "ruff *": "allow",
+          "pytest *": "allow",
+          "mypy *": "allow",
+          "rg *": "allow",
+          "git *": "allow",
+          "*": "deny"
+        }
+      },
+      "description": "Python specialist — writes Pythonic code. Knows typing, async, data science, web frameworks, and the Python ecosystem. Handles ruff, pytest, and mypy."
+    },
+
+    // === NEW: Infrastructure Agents ===
+    "infra/devops": {
+      "model": "moonshotai/kimi-k2.6",
+      "temperature": 0.1,
+      "tools": {
+        "write": false,
+        "edit": false,
+        "patch": false
+      },
+      "permission": {
+        "bash": {
+          "docker *": "allow",
+          "kubectl *": "allow",
+          "terraform *": "allow",
+          "helm *": "allow",
+          "aws *": "allow",
+          "gcloud *": "allow",
+          "az *": "allow",
+          "rg *": "allow",
+          "git *": "allow",
+          "*": "deny"
+        }
+      },
+      "description": "Infrastructure specialist — Docker, Kubernetes, Terraform, CI/CD, cloud providers. Read-only analysis, generates manifests and configs. Never applies changes directly."
+    },
+    "infra/data": {
+      "model": "z-ai/glm-5.1",
+      "temperature": 0.2,
+      "permission": {
+        "bash": {
+          "psql *": "allow",
+          "mysql *": "allow",
+          "sqlite3 *": "allow",
+          "mongosh *": "allow",
+          "redis-cli *": "allow",
+          "prisma *": "allow",
+          "alembic *": "allow",
+          "rg *": "allow",
+          "git *": "allow",
+          "*": "deny"
+        }
+      },
+      "description": "Data specialist — SQL, NoSQL, schema design, migrations, query optimization, ETL. Read-only for production data, can generate migration files."
+    },
+    "infra/security": {
+      "model": "nvidia/nemotron-3-ultra-550b-a55b",
+      "temperature": 0.1,
+      "tools": {
+        "write": false,
+        "edit": false,
+        "patch": false
+      },
+      "permission": {
+        "bash": {
+          "snyk *": "allow",
+          "trivy *": "allow",
+          "grype *": "allow",
+          "gitleaks *": "allow",
+          "semgrep *": "allow",
+          "rg *": "allow",
+          "git *": "allow",
+          "*": "deny"
+        }
+      },
+      "description": "Security specialist — vulnerability scanning, SAST, DAST, dependency auditing, secret detection. Read-only, reports findings without modification."
+    }
+  }
+}
