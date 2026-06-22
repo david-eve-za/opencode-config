@@ -6,6 +6,10 @@ import { register as swarmStatus } from "./swarm/swarm-status"
 import { register as swarmCollect } from "./swarm/swarm-collect"
 import { register as parallel } from "./swarm/parallel"
 
+// Loop commands
+import { register as goal } from "./loop/goal"
+import { register as loop } from "./loop/loop"
+
 // Workflow commands
 import { register as test } from "./workflow/test"
 import { register as debug } from "./workflow/debug"
@@ -49,6 +53,10 @@ export function registerCommands(api: any) {
   swarmStatus(api)
   swarmCollect(api)
   parallel(api)
+
+  // Loop
+  goal(api)
+  loop(api)
 
   // Workflow
   test(api)
