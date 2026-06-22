@@ -6,7 +6,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 # Mandatory MCP servers (always installed)
 if [[ -z "${MANDATORY_MCPS[0]:-}" ]]; then
     readonly MANDATORY_MCPS=(
-        "engram-mcp:npx -y engram-mcp@latest:Engram persistent memory"
+        "engram-mcp:install_engram:Engram persistent memory"
         "codebase-memory-mcp:curl -fsSL https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/main/install.sh | bash:Codebase memory graph"
         "searxng-mcp:npx -y @kevinwatt/mcp-server-searxng@latest:SearXNG meta search MCP"
     )
@@ -22,6 +22,61 @@ if [[ -z "${OPTIONAL_MCPS[0]:-}" ]]; then
         "kubernetes:k8s-mcp:Kubernetes cluster management"
     )
 fi
+
+install_engram() {
+    log_substep "Installing engram: Engram persistent memory"
+    
+    if [[ "${DRY_RUN:-false}" == "true" ]]; then
+        log_info "$(dry_run_prefix)Would install engram via appropriate method for OS"
+        return 0
+    fi
+    
+    # Check if engram is already installed
+    if command_exists engram; then
+        log_info "engram already installed: $(engram --version 2>/dev/null || echo 'unknown version')"
+        return 0
+    fi
+    
+    local os
+    os=$(get_os)
+    
+    case "$os" in
+        "macos")
+            if command_exists brew; then
+                log_info "Installing engram via Homebrew..."
+                run_cmd "brew install gentleman-programming/tap/engram" "Install engram via Homebrew"
+            elif command_exists go; then
+                log_info "Installing engram via go install..."
+                run_cmd "go install github.com/Gentleman-Programming/engram/cmd/engram@latest" "Install engram via go install"
+            else
+                log_error "Neither Homebrew nor Go found. Cannot install engram on macOS."
+                return 1
+            fi
+            ;;
+        "linux")
+            if command_exists go; then
+                log_info "Installing engram via go install..."
+                run_cmd "go install github.com/Gentleman-Programming/engram/cmd/engram@latest" "Install engram via go install"
+            else
+                log_error "Go not found. Cannot install engram on Linux."
+                return 1
+            fi
+            ;;
+        *)
+            log_error "Unsupported OS for engram installation: $os"
+            return 1
+            ;;
+    esac
+    
+    # Verify installation
+    if command_exists engram; then
+        log_success "engram installed: $(engram --version 2>/dev/null || echo 'installed')"
+        return 0
+    else
+        log_warn "engram installation may have failed (continuing...)"
+        return 1
+    fi
+}
 
 install_mcp() {
     local name="$1"
@@ -44,6 +99,11 @@ install_mcp() {
             log_warn "$name installation failed (continuing...)"
             return 1
         fi
+    fi
+    
+    if [[ "$name" == "engram-mcp" ]]; then
+        install_engram
+        return $?
     fi
     
     if run_cmd "$cmd" "Install $name"; then

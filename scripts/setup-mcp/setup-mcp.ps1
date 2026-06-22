@@ -83,7 +83,7 @@ function Confirm-Action {
 
 # Mandatory MCP servers
 $mandatoryMcps = @(
-    @{Name="engram-mcp"; Command="npx -y engram-mcp@latest"; Description="Engram persistent memory"},
+    @{Name="engram-mcp"; Command="install_engram"; Description="Engram persistent memory"},
     @{Name="codebase-memory-mcp"; Command="curl -fsSL https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/main/install.sh | bash"; Description="Codebase memory graph"},
     @{Name="searxng-mcp"; Command="npx -y @kevinwatt/mcp-server-searxng@latest"; Description="SearXNG meta search MCP"}
 )
@@ -241,6 +241,51 @@ function Install-UV {
     }
 }
 
+function Install-Engram {
+    Write-Log "Installing engram: Engram persistent memory" "INFO"
+    
+    if ($DryRun) {
+        Write-Log "[DRY-RUN] Would install engram via appropriate method for OS" "INFO"
+        return
+    }
+    
+    # Check if engram is already installed
+    if (Test-Command "engram") {
+        Write-Log "engram already installed: $(engram --version 2>$null || echo 'unknown version')" "INFO"
+        return
+    }
+    
+    if ($IsWindows) {
+        # Windows: prefer go install or download binary
+        if (Test-Command "go") {
+            Write-Log "Installing engram via go install..." "INFO"
+            go install github.com/Gentleman-Programming/engram/cmd/engram@latest
+        } else {
+            Write-Log "Go not found. Cannot install engram on Windows." "ERROR"
+            return
+        }
+    } else {
+        # macOS/Linux: prefer Homebrew, then go install
+        if (Test-Command "brew") {
+            Write-Log "Installing engram via Homebrew..." "INFO"
+            brew install gentleman-programming/tap/engram
+        } elseif (Test-Command "go") {
+            Write-Log "Installing engram via go install..." "INFO"
+            go install github.com/Gentleman-Programming/engram/cmd/engram@latest
+        } else {
+            Write-Log "Neither Homebrew nor Go found. Cannot install engram." "ERROR"
+            return
+        }
+    }
+    
+    # Verify installation
+    if (Test-Command "engram") {
+        Write-Log "engram installed: $(engram --version 2>$null || echo 'installed')" "SUCCESS"
+    } else {
+        Write-Log "engram installation may have failed" "WARN"
+    }
+}
+
 function Install-MCP {
     param([string]$Name, [string]$Command, [string]$Description)
     Write-Log "Installing $Name: $Description"
@@ -257,6 +302,8 @@ function Install-MCP {
             Write-Log "Installing $Name via official installer..." "INFO"
             Invoke-Expression $cmd
             Write-Log "$Name installed" "SUCCESS"
+        } elseif ($Name -eq "engram-mcp") {
+            Install-Engram
         } else {
             Invoke-Expression $Command
             Write-Log "$Name installed" "SUCCESS"

@@ -170,7 +170,7 @@
     },
     "engram": {
       "type": "local",
-      "command": ["npx", "-y", "engram-mcp@latest"],
+      "command": ["engram", "mcp"],
       "env": {
         "ENGRAM_DB_PATH": "~/.engram/engram.db"
       }
