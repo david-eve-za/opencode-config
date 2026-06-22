@@ -182,6 +182,18 @@
         "CODEBASE_MEMORY_DB": "~/.codebase-memory/graph.db"
       }
     },
+    "searxng": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@kevinwatt/mcp-server-searxng"
+      ],
+      "environment": {
+        "SEARXNG_URL": "http://localhost:1012"
+      },
+      "enabled": true
+    },
     "nvidia-nim": {
       "type": "remote",
       "url": "https://integrate.api.nvidia.com/mcp",
