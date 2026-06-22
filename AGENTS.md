@@ -27,6 +27,19 @@ RED → GREEN → REFACTOR for every feature/bug fix. Tests first. No exceptions
 ### Lint Is Law
 Fix all lint errors before commit. No "pre-existing" excuses.
 
+### Git Workflow (MANDATORY)
+- **Every code change MUST create a branch from main** following git best practices
+- Branch naming: `feat/<short-description>`, `fix/<short-description>`, `docs/<short-description>`, `refactor/<short-description>`, `chore/<short-description>`
+- Commit messages: Conventional Commits format (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:`)
+- PR required for all changes; no direct pushes to main
+- Keep branches focused and small; one logical change per branch
+- Delete branch after merge
+
+### Documentation Priority (MANDATORY)
+- **Prioritize official internet documentation** (WebFetch/WebSearch) over assumptions to avoid hallucinations
+- Always verify API signatures, config schemas, and CLI flags against official docs before implementing
+- When in doubt, search official docs first — don't guess
+
 ## Tooling Priority
 Prefer plugin tools over raw CLI/MCP.
 1. `hive_*`, `swarm_*`, `structured_*`, `swarmmail_*`
@@ -108,7 +121,31 @@ Be extra with ASCII art. Include illustrations, diagrams, test summaries, credit
 - `frontend/react` → React projects
 - `frontend/vue` → Vue projects
 - `frontend/svelte` → Svelte projects
+- `backend/go` → Go projects (go.mod)
 - `build` → General code generation
 - `plan` → Read-only analysis
 - `test-writer` → Test generation
 - `docs` → Documentation
+
+## Agent Loop Engineering
+- `/goal "objective"` — Create/update goal with Engram persistence
+- `/loop [options]` — Execute autonomous loop until goal achieved
+- Stop conditions: max_iterations, tests_pass, build_success, custom, timeout, goal_complete, all_subgoals_complete
+- Safety: max-iterations, timeout, Ctrl+C graceful stop, destructive confirmations
+- Swarm delegation for complex tasks
+- Event system: iteration_start, action_executed, reflection, iteration_complete, loop_complete, loop_error
+
+## Agent Overrides (opencode.jsonc)
+- `build` — nemotron-3-ultra, temp 0.3, full capability
+- `plan` — glm-5.1, temp 0.1, read-only
+- `security` — kimi-k2.6, temp 0.1, read-only
+- `test-writer` — deepseek-coder:6.7b, temp 0.2, test files only
+- `docs` — gemma4:e4b, temp 0.3, .md files only
+- `backend/go` — deepseek-coder:6.7b, Go tools
+- `backend/rust` — nemotron-3-ultra, Rust tools
+- `backend/python` — qwen3.5:4b, Python tools
+- `frontend/react|vue|svelte` — nemotron-3-ultra, pnpm/npm
+- `infra/devops` — kimi-k2.6, read-only infra
+- `infra/data` — glm-5.1, data tools
+- `infra/security` — nemotron-3-ultra, read-only security
+- `mobile/swift|kotlin` — nemotron-3-ultra, mobile tools

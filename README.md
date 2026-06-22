@@ -153,10 +153,6 @@ CODEBASE_MEMORY_DB=~/.codebase-memory/graph.db
 SEARXNG_INSTANCES=http://localhost:8080
 ```
 
-## Documentation
-
-See `docs/plans/00-MASTER-INDEX.md` for the complete implementation plan and `docs/plans/ref/` for reference catalogs.
-
 ## License
 
 MIT
