@@ -1,0 +1,127 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+*.env.*
+!*.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Cache directories
+.cache/
+.turbo/
+.eslintcache
+.stylelintcache
+.prettiercache
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Bun
+.bun/
+
+# Compiled TypeScript
+*.tsbuildinfo
+
+# IDE
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Vim
+.*.sw?
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Lock files (keep package-lock.json, yarn.lock, pnpm-lock.yaml)
+# bun.lockb
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Secrets and keys
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+secrets/
+*.secret
+
+# Engram database (local only)
+.engram/
+
+# Codebase memory (local only)
+.codebase-memory/
+
+# SearXNG config (local only)
+.searxng/
+
+# Backup files
+*.bak
+*.backup
+*.backup.*
+
+# Vendor
+vendor/
+
+# Generated documentation
+docs/generated/
+
+# CI/CD
+.vercel
+.netlify
+.netlify/
+
+# TypeScript declaration files generated
+*.d.ts
