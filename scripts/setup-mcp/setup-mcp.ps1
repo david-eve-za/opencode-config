@@ -84,7 +84,7 @@ function Confirm-Action {
 # Mandatory MCP servers
 $mandatoryMcps = @(
     @{Name="engram-mcp"; Command="npx -y engram-mcp@latest"; Description="Engram persistent memory"},
-    @{Name="codebase-memory-mcp"; Command="uvx codebase-memory-mcp"; Description="Codebase memory graph"},
+    @{Name="codebase-memory-mcp"; Command="curl -fsSL https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/main/install.sh | bash"; Description="Codebase memory graph"},
     @{Name="searxng-mcp"; Command="npx -y @kevinwatt/mcp-server-searxng@latest"; Description="SearXNG meta search MCP"}
 )
 
@@ -251,8 +251,16 @@ function Install-MCP {
     }
     
     try {
-        Invoke-Expression $Command
-        Write-Log "$Name installed" "SUCCESS"
+        if ($Name -eq "codebase-memory-mcp") {
+            # Special handling for codebase-memory-mcp - use official installer
+            $cmd = "curl -fsSL https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/main/install.sh | bash"
+            Write-Log "Installing $Name via official installer..." "INFO"
+            Invoke-Expression $cmd
+            Write-Log "$Name installed" "SUCCESS"
+        } else {
+            Invoke-Expression $Command
+            Write-Log "$Name installed" "SUCCESS"
+        }
     } catch {
         Write-Log "$Name installation failed: $_" "WARN"
     }
@@ -473,7 +481,7 @@ function Update-OpenCodeConfig {
         }
         "codebase-memory" = @{
             "type" = "local"
-            "command" = @("uvx", "codebase-memory-mcp")
+            "command" = @("codebase-memory-mcp")
             "env" = @{ "CODEBASE_MEMORY_DB" = '${CODEBASE_MEMORY_DB}' }
         }
         "searxng" = @{
