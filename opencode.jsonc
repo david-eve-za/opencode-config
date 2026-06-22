@@ -184,11 +184,7 @@
     },
     "searxng": {
       "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "@kevinwatt/mcp-server-searxng"
-      ],
+      "command": ["searxng-mcp"],
       "environment": {
         "SEARXNG_URL": "http://localhost:1012"
       },

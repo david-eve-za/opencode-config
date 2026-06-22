@@ -83,9 +83,9 @@ function Confirm-Action {
 
 # Mandatory MCP servers
 $mandatoryMcps = @(
-    @{Name="engram-mcp"; Command="install_engram"; Description="Engram persistent memory"},
-    @{Name="codebase-memory-mcp"; Command="curl -fsSL https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/main/install.sh | bash"; Description="Codebase memory graph"},
-    @{Name="searxng-mcp"; Command="npx -y @kevinwatt/mcp-server-searxng@latest"; Description="SearXNG meta search MCP"}
+    @{Name="engram-mcp"; Command="Install-Engram"; Description="Engram persistent memory"},
+    @{Name="codebase-memory-mcp"; Command="Install-CodebaseMemoryMcp"; Description="Codebase memory graph"},
+    @{Name="searxng-mcp"; Command="Install-SearXNG"; Description="SearXNG meta search MCP"}
 )
 
 # Optional MCP servers
@@ -286,6 +286,20 @@ function Install-Engram {
     }
 }
 
+function Install-CodebaseMemoryMcp {
+    Write-Log "Installing codebase-memory-mcp: Codebase memory graph" "INFO"
+    
+    if ($DryRun) {
+        Write-Log "[DRY-RUN] Would install codebase-memory-mcp via official installer" "INFO"
+        return
+    }
+    
+    $cmd = "curl -fsSL https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/main/install.sh | bash"
+    Write-Log "Installing codebase-memory-mcp via official installer..." "INFO"
+    Invoke-Expression $cmd
+    Write-Log "codebase-memory-mcp installed" "SUCCESS"
+}
+
 function Install-MCP {
     param([string]$Name, [string]$Command, [string]$Description)
     Write-Log "Installing $Name: $Description"
@@ -297,13 +311,11 @@ function Install-MCP {
     
     try {
         if ($Name -eq "codebase-memory-mcp") {
-            # Special handling for codebase-memory-mcp - use official installer
-            $cmd = "curl -fsSL https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/main/install.sh | bash"
-            Write-Log "Installing $Name via official installer..." "INFO"
-            Invoke-Expression $cmd
-            Write-Log "$Name installed" "SUCCESS"
+            Install-CodebaseMemoryMcp
         } elseif ($Name -eq "engram-mcp") {
             Install-Engram
+        } elseif ($Name -eq "searxng-mcp") {
+            Install-SearXNG
         } else {
             Invoke-Expression $Command
             Write-Log "$Name installed" "SUCCESS"
