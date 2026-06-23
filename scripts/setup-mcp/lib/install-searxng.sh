@@ -11,10 +11,25 @@ if [[ -z "${SEARXNG_IMAGE:-}" ]]; then
     readonly SEARXNG_CONFIG_DIR="${HOME}/.config/searxng"
     readonly SEARXNG_HEALTH_ENDPOINT="/search?q=test&format=json"
     readonly SEARXNG_HEALTH_TIMEOUT=120
-    readonly SEARXNG_SCRIPT_DIR="$(dirname "$(dirname "${BASH_SOURCE[0]}")")/searxng"
+    readonly SEARXNG_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../searxng" && pwd)"
     readonly SEARXNG_COMPOSE_FILE="${SEARXNG_SCRIPT_DIR}/docker-compose.yml"
     readonly SEARXNG_ENV_FILE="${SEARXNG_SCRIPT_DIR}/.env"
 fi
+
+# Detect docker compose command (v2: "docker compose", v1: "docker-compose")
+detect_docker_compose() {
+    if docker compose version >/dev/null 2>&1; then
+        echo "docker compose"
+    elif command -v docker-compose >/dev/null 2>&1; then
+        echo "docker-compose"
+    else
+        echo "docker compose"  # default fallback
+    fi
+}
+
+# Get the docker compose command
+DOCKER_COMPOSE_CMD=$(detect_docker_compose)
+readonly DOCKER_COMPOSE_CMD
 
 install_searxng() {
     log_step "Installing SearXNG with docker-compose..."
@@ -77,22 +92,22 @@ pull_searxng_images() {
     log_substep "Pulling SearXNG and Valkey Docker images..."
     
     if [[ "${DRY_RUN:-false}" == "true" ]]; then
-        log_info "$(dry_run_prefix)Would run: docker compose -f $SEARXNG_COMPOSE_FILE pull"
+        log_info "$(dry_run_prefix)Would run: ${DOCKER_COMPOSE_CMD} -f ${SEARXNG_COMPOSE_FILE} pull"
         return 0
     fi
     
-    run_cmd "docker_cmd compose -f $SEARXNG_COMPOSE_FILE pull" "Pull SearXNG and Valkey images"
+    run_cmd "${DOCKER_COMPOSE_CMD} -f ${SEARXNG_COMPOSE_FILE} pull" "Pull SearXNG and Valkey images"
 }
 
 stop_existing_searxng() {
     log_substep "Stopping existing SearXNG containers..."
     
     if [[ "${DRY_RUN:-false}" == "true" ]]; then
-        log_info "$(dry_run_prefix)Would run: docker compose -f $SEARXNG_COMPOSE_FILE down -v"
+        log_info "$(dry_run_prefix)Would run: ${DOCKER_COMPOSE_CMD} -f ${SEARXNG_COMPOSE_FILE} down -v"
         return 0
     fi
     
-    run_cmd "docker_cmd compose -f $SEARXNG_COMPOSE_FILE down -v" "Stop and remove existing SearXNG containers"
+    run_cmd "${DOCKER_COMPOSE_CMD} -f ${SEARXNG_COMPOSE_FILE} down -v" "Stop and remove existing SearXNG containers"
 }
 
 run_searxng_compose() {
@@ -101,14 +116,14 @@ run_searxng_compose() {
     log_substep "Starting SearXNG with docker-compose on port $port..."
     
     if [[ "${DRY_RUN:-false}" == "true" ]]; then
-        log_info "$(dry_run_prefix)Would run: docker compose -f $SEARXNG_COMPOSE_FILE up -d"
+        log_info "$(dry_run_prefix)Would run: ${DOCKER_COMPOSE_CMD} -f ${SEARXNG_COMPOSE_FILE} up -d"
         return 0
     fi
     
     # Update port in .env
-    sed -i "s/^SEARXNG_PORT=.*/SEARXNG_PORT=$port/" "$SEARXNG_SCRIPT_DIR/.env"
+    sed -i "s/^SEARXNG_PORT=.*/SEARXNG_PORT=$port/" "${SEARXNG_SCRIPT_DIR}/.env"
     
-    run_cmd "docker_cmd compose -f $SEARXNG_COMPOSE_FILE up -d" "Start SearXNG with docker-compose"
+    run_cmd "${DOCKER_COMPOSE_CMD} -f ${SEARXNG_COMPOSE_FILE} up -d" "Start SearXNG with docker-compose"
 }
 
 wait_for_searxng_health() {
@@ -142,17 +157,17 @@ wait_for_searxng_health() {
     # Show container logs for debugging
     log_error "SearXNG health check failed after ${SEARXNG_HEALTH_TIMEOUT}s"
     log_substep "Container logs:"
-    docker_cmd compose -f "$SEARXNG_COMPOSE_FILE" logs --tail 50 2>/dev/null || true
+    ${DOCKER_COMPOSE_CMD} -f "${SEARXNG_COMPOSE_FILE}" logs --tail 50 2>/dev/null || true
     
     return 1
 }
 
 # Get SearXNG status
 searxng_status() {
-    if docker_cmd compose -f "$SEARXNG_COMPOSE_FILE" ps --format '{{.Names}}' | grep -q "^searxng-core$"; then
+    if ${DOCKER_COMPOSE_CMD} -f "${SEARXNG_COMPOSE_FILE}" ps --format '{{.Names}}' | grep -q "^searxng-core$"; then
         local port
-        port=$(docker_cmd port searxng-core 2>/dev/null | grep '8080/tcp' | cut -d: -f2 | head -1)
-        echo "running:$port"
+        port=$(${DOCKER_COMPOSE_CMD} -f "${SEARXNG_COMPOSE_FILE}" port searxng-core 2>/dev/null | grep '8080/tcp' | cut -d: -f2 | head -1)
+        echo "running:${port}"
     else
         echo "stopped"
     fi
