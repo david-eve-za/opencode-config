@@ -1,0 +1,34 @@
+# SearXNG with Valkey (Redis-compatible) - Docker Compose
+# Based on https://docs.searxng.org/admin/installation-docker.html
+
+services:
+  core:
+    container_name: searxng-core
+    image: docker.io/searxng/searxng:${SEARXNG_VERSION:-latest}
+    restart: always
+    ports:
+      - "${SEARXNG_HOST:+${SEARXNG_HOST}:}${SEARXNG_PORT:-1012}:${SEARXNG_PORT:-8080}"
+    env_file: .env
+    volumes:
+      - ./core-config/:/etc/searxng/:Z
+      - core-data:/var/cache/searxng/
+    depends_on:
+      valkey:
+        condition: service_healthy
+
+  valkey:
+    container_name: searxng-valkey
+    image: docker.io/valkey/valkey:9-alpine
+    command: valkey-server --save 30 1 --loglevel warning
+    restart: always
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - valkey-data:/data/
+
+volumes:
+  core-data:
+  valkey-data:
