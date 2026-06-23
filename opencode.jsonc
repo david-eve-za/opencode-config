@@ -7,41 +7,94 @@
   "small_model": "moonshotai/kimi-k2.6",
   "autoupdate": true,
 
-  // Model routing configuration
-  "model_routing": {
-    "providers": {
-      "nvidia_nim": {
-        "enabled": true,
-        "base_url": "https://integrate.api.nvidia.com/v1",
-        "api_key_env": "NVIDIA_API_KEY",
-        "models": {
-          "ultra": "nvidia/nemotron-3-ultra-550b-a55b",
-          "reasoning": "z-ai/glm-5.1",
-          "long_context": "moonshotai/kimi-k2.6"
-        }
+  // === Custom Provider Configurations ===
+  "provider": {
+    "nvidia_nim": {
+      "name": "NVIDIA NIM",
+      "api": "openai",
+      "env": ["NVIDIA_API_KEY"],
+      "options": {
+        "baseURL": "https://integrate.api.nvidia.com/v1",
+        "apiKey": "${NVIDIA_API_KEY}"
       },
-      "ollama": {
-        "enabled": true,
-        "base_url": "http://localhost:11434/v1",
-        "models": {
-          "fast": "qwen3.5:4b",
-          "coding": "deepseek-coder:6.7b",
-          "efficient": "gemma4:e4b"
+      "models": {
+        "nvidia/nemotron-3-ultra-550b-a55b": {
+          "id": "nvidia/nemotron-3-ultra-550b-a55b",
+          "name": "Nemotron 3 Ultra",
+          "family": "nemotron",
+          "tool_call": true,
+          "reasoning": false,
+          "modalities": {
+            "input": ["text"],
+            "output": ["text"]
+          }
+        },
+        "z-ai/glm-5.1": {
+          "id": "z-ai/glm-5.1",
+          "name": "GLM 5.1",
+          "family": "glm",
+          "tool_call": true,
+          "reasoning": true,
+          "modalities": {
+            "input": ["text"],
+            "output": ["text"]
+          }
+        },
+        "moonshotai/kimi-k2.6": {
+          "id": "moonshotai/kimi-k2.6",
+          "name": "Kimi K2.6",
+          "family": "kimi",
+          "tool_call": true,
+          "reasoning": false,
+          "modalities": {
+            "input": ["text"],
+            "output": ["text"]
+          }
         }
       }
     },
-    "routing_rules": {
-      "build": "nvidia_nim:ultra",
-      "plan": "nvidia_nim:reasoning",
-      "security": "nvidia_nim:long_context",
-      "test-writer": "ollama:coding",
-      "docs": "ollama:efficient",
-      "backend/go": "ollama:coding",
-      "backend/rust": "nvidia_nim:ultra",
-      "backend/python": "ollama:fast",
-      "infra/devops": "nvidia_nim:long_context",
-      "infra/data": "nvidia_nim:reasoning",
-      "infra/security": "nvidia_nim:ultra"
+    "ollama": {
+      "name": "Ollama Local",
+      "api": "openai",
+      "options": {
+        "baseURL": "http://localhost:11434/v1",
+        "apiKey": "ollama"
+      },
+      "models": {
+        "qwen3.5:4b": {
+          "id": "qwen3.5:4b",
+          "name": "Qwen 3.5 4B",
+          "family": "qwen",
+          "tool_call": true,
+          "reasoning": false,
+          "modalities": {
+            "input": ["text"],
+            "output": ["text"]
+          }
+        },
+        "deepseek-coder:6.7b": {
+          "id": "deepseek-coder:6.7b",
+          "name": "DeepSeek Coder 6.7B",
+          "family": "deepseek",
+          "tool_call": true,
+          "reasoning": false,
+          "modalities": {
+            "input": ["text"],
+            "output": ["text"]
+          }
+        },
+        "gemma4:e4b": {
+          "id": "gemma4:e4b",
+          "name": "Gemma 4 E4B",
+          "family": "gemma",
+          "tool_call": true,
+          "reasoning": false,
+          "modalities": {
+            "input": ["text"],
+            "output": ["text"]
+          }
+        }
+      }
     }
   },
 
@@ -246,30 +299,6 @@
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
       },
       "condition": "git:remote=github"
-    }
-  },
-
-  // === MCP Profiles ===
-  "mcp_profiles": {
-    "web": {
-      "includes": ["next-devtools", "chrome-devtools", "playwright", "duckduckgo"],
-      "excludes": []
-    },
-    "backend": {
-      "includes": ["postgres", "sqlite"],
-      "excludes": ["next-devtools"]
-    },
-    "infra": {
-      "includes": ["docker", "kubernetes"],
-      "excludes": ["next-devtools", "chrome-devtools"]
-    },
-    "fullstack": {
-      "includes": ["next-devtools", "chrome-devtools", "postgres", "docker"],
-      "excludes": []
-    },
-    "minimal": {
-      "includes": [],
-      "excludes": ["next-devtools", "chrome-devtools", "playwright", "docker", "kubernetes", "postgres", "sqlite"]
     }
   },
 
