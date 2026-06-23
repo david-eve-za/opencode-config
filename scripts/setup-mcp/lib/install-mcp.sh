@@ -4,11 +4,10 @@
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 # Mandatory MCP servers (always installed)
-if [[ -z "${MANDATORY_MCPS[0]:-}" ]]; then
+if [[ -z "${MANDATORY_MCPS[0]:-0]:-}" ]]; then
     readonly MANDATORY_MCPS=(
         "engram-mcp:install_engram:Engram persistent memory"
         "codebase-memory-mcp:curl -fsSL https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/main/install.sh | bash:Codebase memory graph"
-        "searxng-mcp:install_searxng:SearXNG meta search MCP"
     )
 fi
 

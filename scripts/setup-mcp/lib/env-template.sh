@@ -11,12 +11,11 @@ if [[ -z "${OPENCODE_CONFIG_DIR:-}" ]]; then
 fi
 
 generate_env_example() {
-    local searxng_port="${1:-8080}"
-    local install_github="${2:-false}"
-    local install_postgres="${3:-false}"
-    local install_sqlite="${4:-false}"
-    local install_docker="${5:-false}"
-    local install_k8s="${6:-false}"
+    local install_github="${1:-false}"
+    local install_postgres="${2:-false}"
+    local install_sqlite="${3:-false}"
+    local install_docker="${3:-false}"
+    local install_k8s="${4:-false}"
     
     log_step "Generating environment template..."
     
@@ -40,10 +39,6 @@ ENGRAM_DB_PATH=~/.engram/engram.db
 
 # Codebase memory graph database
 CODEBASE_MEMORY_DB=~/.codebase-memory/graph.db
-
-# SearXNG meta search instance
-SEARXNG_INSTANCES=http://localhost:${searxng_port}
-SEARXNG_USER_AGENT=MCP-SearXNG/1.0
 
 # === OPTIONAL - Set based on installed MCP servers ===
 EOF
@@ -123,10 +118,6 @@ validate_env() {
     
     if [[ -z "${CODEBASE_MEMORY_DB:-}" ]]; then
         missing+=("CODEBASE_MEMORY_DB")
-    fi
-    
-    if [[ -z "${SEARXNG_INSTANCES:-}" ]]; then
-        missing+=("SEARXNG_INSTANCES")
     fi
     
     if [[ ${#missing[@]} -gt 0 ]]; then

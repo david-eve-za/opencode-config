@@ -11,12 +11,11 @@ fi
 
 # MCP configurations
 generate_mcp_config() {
-    local searxng_port="${1:-8080}"
-    local install_github="${2:-false}"
-    local install_postgres="${3:-false}"
-    local install_sqlite="${4:-false}"
-    local install_docker="${5:-false}"
-    local install_k8s="${6:-false}"
+    local install_github="${1:-false}"
+    local install_postgres="${2:-false}"
+    local install_sqlite="${3:-false}"
+    local install_docker="${4:-false}"
+    local install_k8s="${5:-false}"
     
     cat << EOF
 {
@@ -30,13 +29,9 @@ generate_mcp_config() {
     "command": ["uvx", "codebase-memory-mcp"],
     "env": { "CODEBASE_MEMORY_DB": "\${CODEBASE_MEMORY_DB}" }
   },
-  "searxng": {
+  "duckduckgo": {
     "type": "local",
-    "command": ["npx", "-y", "@kevinwatt/mcp-server-searxng@latest"],
-    "env": {
-      "SEARXNG_INSTANCES": "\${SEARXNG_INSTANCES}",
-      "SEARXNG_USER_AGENT": "\${SEARXNG_USER_AGENT}"
-    }
+    "command": ["uvx", "ddg-mcp-server"]
   }$(
     if [[ "$install_github" == "true" ]]; then
         cat << 'GITHUB'
@@ -96,8 +91,6 @@ EOF
 
 # Update opencode.jsonc with MCP config
 update_opencode_config() {
-    local searxng_port="${1:-8080}"
-    shift
     local optional_mcps=("$@")
     
     log_step "Updating OpenCode configuration..."
@@ -121,7 +114,7 @@ update_opencode_config() {
     
     # Generate MCP config JSON
     local mcp_json
-    mcp_json=$(generate_mcp_config "$searxng_port" "$install_github" "$install_postgres" "$install_sqlite" "$install_docker" "$install_k8s")
+    mcp_json=$(generate_mcp_config "$install_github" "$install_postgres" "$install_sqlite" "$install_docker" "$install_k8s")
     
     if [[ "${DRY_RUN:-false}" == "true" ]]; then
         log_info "$(dry_run_prefix)Would update $OPENCODE_CONFIG_FILE"

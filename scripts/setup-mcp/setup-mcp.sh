@@ -2,7 +2,7 @@
 # setup-mcp.sh - Cross-platform MCP server setup for OpenCode
 # 
 # Installs mandatory and optional MCP servers, configures OpenCode,
-# sets up SearXNG Docker container, and generates environment template.
+# and generates environment template.
 #
 # Usage: ./setup-mcp.sh [--dry-run] [--all] [--only-mandatory] [--verbose] [--help]
 
@@ -18,7 +18,6 @@ source "${LIB_DIR}/detect-os.sh"
 source "${LIB_DIR}/check-prereqs.sh"
 source "${LIB_DIR}/install-uv.sh"
 source "${LIB_DIR}/install-mcp.sh"
-source "${LIB_DIR}/install-searxng.sh"
 source "${LIB_DIR}/config-opencode.sh"
 source "${LIB_DIR}/env-template.sh"
 source "${LIB_DIR}/backup.sh"
@@ -72,28 +71,16 @@ main() {
     # Install mandatory MCPs
     install_mandatory_mcps
     
-    # Install SearXNG (mandatory)
-    if [[ "${SKIP_SEARXNG:-false}" != "true" ]]; then
-        if ! install_searxng; then
-            log_error "SearXNG installation failed"
-            exit 1
-        fi
-        SEARXNG_PORT="${SEARXNG_PORT:-8080}"
-    else
-        log_warn "Skipping SearXNG installation (--no-searxng)"
-        SEARXNG_PORT=8080
-    fi
-    
     # Install optional MCPs
     if [[ "${ONLY_MANDATORY:-false}" != "true" ]]; then
         install_optional_mcps "${SELECTED_OPTIONAL_MCPS[@]}"
     fi
     
     # Update OpenCode configuration
-    update_opencode_config "$SEARXNG_PORT" "${SELECTED_OPTIONAL_MCPS[@]}"
+    update_opencode_config "${SELECTED_OPTIONAL_MCPS[@]}"
     
     # Generate environment template
-    generate_env_example "$SEARXNG_PORT" \
+    generate_env_example \
         "$(contains github "${SELECTED_OPTIONAL_MCPS[@]}" && echo true || echo false)" \
         "$(contains postgres "${SELECTED_OPTIONAL_MCPS[@]}" && echo true || echo false)" \
         "$(contains sqlite "${SELECTED_OPTIONAL_MCPS[@]}" && echo true || echo false)" \
@@ -162,7 +149,6 @@ show_installation_plan() {
         IFS=':' read -r name cmd desc <<< "$mcp"
         echo -e "  ${GREEN}✓${NC} $name - $desc"
     done
-    echo -e "  ${GREEN}✓${NC} SearXNG Docker Container"
     
     if [[ ${#SELECTED_OPTIONAL_MCPS[@]} -gt 0 ]]; then
         echo -e "\n${BOLD}Optional MCP Servers:${NC}"
@@ -182,7 +168,6 @@ show_installation_plan() {
     echo -e "\n${BOLD}Configuration:${NC}"
     echo -e "  ${CYAN}→${NC} OpenCode config: ~/.config/opencode/opencode.jsonc"
     echo -e "  ${CYAN}→${NC} Environment: ~/.config/opencode/.env"
-    echo -e "  ${CYAN}→${NC} SearXNG port: ${SEARXNG_PORT:-auto-detect}"
     
     if [[ "${DRY_RUN:-false}" == "true" ]]; then
         echo -e "\n${YELLOW}[DRY-RUN] No changes will be made${NC}"
@@ -190,15 +175,13 @@ show_installation_plan() {
 }
 
 show_summary() {
-    echo -e "\n${BOLD}${GREEN}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "\n${BOLD}${GREEN}════════════════════════════════════════════════════════════════${NC}"
     echo -e "${BOLD}${GREEN}  Installation Complete!${NC}"
-    echo -e "${BOLD}${GREEN}═══════════════════════════════════════════════════════════════${NC}\n"
+    echo -e "${BOLD}${GREEN}════════════════════════════════════════════════════════════════${NC}\n"
     
     echo -e "${BOLD}Installed MCP Servers:${NC}"
     echo -e "  ${GREEN}✓${NC} engram-mcp"
     echo -e "  ${GREEN}✓${NC} codebase-memory-mcp"
-    echo -e "  ${GREEN}✓${NC} @kevinwatt/mcp-server-searxng"
-    echo -e "  ${GREEN}✓${NC} SearXNG (port $SEARXNG_PORT)"
     
     for name in "${SELECTED_OPTIONAL_MCPS[@]}"; do
         echo -e "  ${GREEN}✓${NC} $name"
@@ -208,7 +191,6 @@ show_summary() {
     echo -e "  ${CYAN}→${NC} ~/.config/opencode/opencode.jsonc (updated)"
     echo -e "  ${CYAN}→${NC} ~/.config/opencode/.env.example (generated)"
     echo -e "  ${CYAN}→${NC} ~/.config/opencode/.env (created from template)"
-    echo -e "  ${CYAN}→${NC} ~/.config/searxng/settings.yml"
     
     echo -e "\n${BOLD}Next Steps:${NC}"
     echo -e "  1. Edit ~/.config/opencode/.env with your API keys:"
@@ -217,8 +199,6 @@ show_summary() {
     echo -e "     ${YELLOW}opencode${NC}"
     echo -e "  3. Test MCP servers:"
     echo -e "     ${YELLOW}opencode mcp list${NC}"
-    echo -e "  4. Test SearXNG:"
-    echo -e "     ${YELLOW}curl http://localhost:$SEARXNG_PORT/search?q=test&format=json${NC}"
     
     if [[ "${DRY_RUN:-false}" == "true" ]]; then
         echo -e "\n${YELLOW}[DRY-RUN] This was a dry run - no changes were made${NC}"
