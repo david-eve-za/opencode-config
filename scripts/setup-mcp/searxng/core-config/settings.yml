@@ -30,6 +30,7 @@ search:
   categories:
     - general
   language_cookies_expire: 30
+  doi_resolver: "https://doi.org/"
 
 engines:
   - name: google
@@ -52,3 +53,35 @@ redis:
 
 database:
   enabled: false
+
+outgoing:
+  request_timeout: 3.0
+  useragent_suffix: ""
+  pool_connections: 100
+  pool_maxsize: 20
+  enable_http2: true
+
+preferences:
+  lock: []
+  #     - categories
+  #     - language
+  #     - autocomplete
+  #     - favicon_resolver
+  #     - safesearch
+  #     - doi_resolver
+  #     - locale
+  #     - theme
+  #     - results_on_new_tab
+  #     - search_on_category_select
+  #     - method
+  #     - image_proxy
+  #     - query_in_title
+
+ui:
+  static_use_hash: true
+  default_theme: simple
+  default_locale: ""
+  center_alignment: false
+  search_on_category_select: true
+  hotkeys: default
+  url_formatting: pretty
