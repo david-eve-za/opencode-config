@@ -9,7 +9,7 @@ This configuration transforms OpenCode into a full-stack development environment
 - **20 specialized agents** — backend (Go/Rust/Python), frontend (React/Vue/Svelte), infra (DevOps/Data/Security), mobile (Swift/Kotlin), swarm orchestration
 - **35 commands** — universal workflows (test, lint, debug, migrate, deploy-check, swarm, etc.)
 - **30 tools** — multi-language (Go/Rust/Python), infra (Docker/K8s/Terraform), data (DB schema/query/migration)
-- **13 MCP servers** — context7, fetch, engram, codebase-memory, nvidia-nim, github, postgres, sqlite, docker, k8s, searxng
+- **13 MCP servers** — context7, fetch, engram, codebase-memory, nvidia-nim, github, postgres, sqlite, docker, k8s, duckduckgo
 - **Agent Loop Engineering** — `/goal` + `/loop` for autonomous workflow execution
 - **Engram memory** — persistent semantic memory with topic keys
 - **Least-privilege security** — .env deny, agent-specific permissions
@@ -101,7 +101,7 @@ opencode-config/
 | Category | Servers |
 |----------|---------|
 | Universal | context7, fetch, engram, codebase-memory, nvidia-nim |
-| Web | next-devtools, chrome-devtools, playwright |
+| Web | next-devtools, chrome-devtools, playwright, duckduckgo |
 | Backend | mcp-postgres, mcp-server-sqlite |
 | Infra | docker-mcp, k8s-mcp |
 | Data | @missionsquad/mcp-github |
@@ -150,7 +150,6 @@ GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxxx
 POSTGRES_URL=postgresql://user:pass@host:5432/db
 ENGRAM_DB_PATH=~/.engram/engram.db
 CODEBASE_MEMORY_DB=~/.codebase-memory/graph.db
-SEARXNG_INSTANCES=http://localhost:8080
 ```
 
 ## License

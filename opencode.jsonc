@@ -182,13 +182,9 @@
         "CODEBASE_MEMORY_DB": "~/.codebase-memory/graph.db"
       }
     },
-    "searxng": {
+    "duckduckgo": {
       "type": "local",
-      "command": ["searxng-mcp"],
-      "environment": {
-        "SEARXNG_URL": "http://localhost:1012"
-      },
-      "enabled": true
+      "command": ["uvx", "ddg-mcp-server"]
     },
     "nvidia-nim": {
       "type": "remote",
@@ -256,7 +252,7 @@
   // === MCP Profiles ===
   "mcp_profiles": {
     "web": {
-      "includes": ["next-devtools", "chrome-devtools", "playwright"],
+      "includes": ["next-devtools", "chrome-devtools", "playwright", "duckduckgo"],
       "excludes": []
     },
     "backend": {

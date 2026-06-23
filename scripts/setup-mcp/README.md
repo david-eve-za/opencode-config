@@ -1,6 +1,6 @@
 # setup-mcp — Cross-Platform MCP Server Setup for OpenCode
 
-Automated installation and configuration of MCP (Model Context Protocol) servers for OpenCode, including mandatory servers, optional servers, SearXNG meta-search with Docker, and environment configuration.
+Automated installation and configuration of MCP (Model Context Protocol) servers for OpenCode, including mandatory servers, optional servers, DuckDuckGo search, and environment configuration.
 
 ## Features
 
@@ -8,8 +8,7 @@ Automated installation and configuration of MCP (Model Context Protocol) servers
 - **Mandatory MCP servers** (always installed):
   - `engram-mcp` — Persistent memory for AI
   - `codebase-memory-mcp` — Codebase knowledge graph
-  - `@kevinwatt/mcp-server-searxng` — SearXNG meta-search MCP
-  - **SearXNG Docker container** — Privacy-focused meta search engine
+  - `duckduckgo` — DuckDuckGo search MCP
 - **Optional MCP servers** (interactive or `--all`):
   - `@missionsquad/mcp-github` — GitHub API access
   - `mcp-postgres` — PostgreSQL database operations
@@ -96,7 +95,6 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 | `--all` / `-All` | Install all optional MCP servers without prompting |
 | `--only-mandatory` / `-OnlyMandatory` | Install only mandatory MCP servers |
 | `--verbose` / `-Verbose` | Enable verbose output |
-| `--no-searxng` / `-NoSearXNG` | Skip SearXNG installation |
 | `--help` / `-Help` | Show help message |
 
 ## What Gets Installed
@@ -107,8 +105,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 |--------|---------|---------------------|
 | `engram-mcp` | Persistent memory across sessions | `npx -y engram-mcp@latest` |
 | `codebase-memory-mcp` | Codebase knowledge graph | `uvx codebase-memory-mcp` |
-| `@kevinwatt/mcp-server-searxng` | SearXNG search MCP | `npx -y @kevinwatt/mcp-server-searxng@latest` |
-| **SearXNG** | Meta-search engine (Docker) | `docker run searxng/searxng` |
+| `duckduckgo` | DuckDuckGo search MCP | `uvx ddg-mcp-server` |
 
 ### Optional MCP Servers
 
@@ -127,7 +124,6 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 | `~/.config/opencode/opencode.jsonc` | MCP server configuration (updated) |
 | `~/.config/opencode/.env.example` | Environment template (generated) |
 | `~/.config/opencode/.env` | Environment file (copied from template) |
-| `~/.config/searxng/settings.yml` | SearXNG configuration |
 
 ## Environment Variables
 
@@ -135,11 +131,10 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 ```bash
 ENGRAM_DB_PATH=~/.engram/engram.db
 CODEBASE_MEMORY_DB=~/.codebase-memory/graph.db
-SEARXNG_INSTANCES=http://localhost:8080
-SEARXNG_USER_AGENT=MCP-SearXNG/1.0
 ```
 
 ### Optional (based on installed MCPs)
+```bash
 ```bash
 # GitHub
 GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxxx
@@ -152,21 +147,17 @@ NVIDIA_API_KEY=nvapi_xxxx
 OLLAMA_HOST=http://localhost:11434
 ```
 
-## SearXNG Details
+## DuckDuckGo Search Details
 
-- **Default port**: 8080 (auto-detects free port if busy)
-- **Search engines**: Google, DuckDuckGo, Bing
-- **Categories**: General, News, Science, Files, Images, Videos
-- **Health check**: Verifies `/search?q=test&format=json` responds
-- **Auto-restart**: `--restart always` flag on container
+- **Installation**: `uvx ddg-mcp-server`
+- **No Docker required** — runs as a native MCP server
+- **Search engine**: DuckDuckGo HTML scraping
+- **No API key required** — uses DuckDuckGo's HTML interface
 
-### Test SearXNG
+### Test DuckDuckGo
 ```bash
-# Get port from docker
-docker port searxng 8080/tcp
-
-# Test search
-curl "http://localhost:8080/search?q=openai&format=json" | jq
+# Test search via MCP
+opencode mcp call duckduckgo search '{"query": "openai"}'
 ```
 
 ## Post-Installation
@@ -186,10 +177,10 @@ curl "http://localhost:8080/search?q=openai&format=json" | jq
    opencode mcp list
    ```
 
-4. **Test SearXNG**:
-   ```bash
-   curl "http://localhost:8080/search?q=test&format=json"
-   ```
+4. **Test DuckDuckGo**:
+    ```bash
+    opencode mcp call duckduckgo search '{"query": "test"}'
+    ```
 
 ## Troubleshooting
 
@@ -208,19 +199,10 @@ sudo usermod -aG docker $USER
 newgrp docker
 ```
 
-### Port 8080 in use
-Script auto-detects free port (8081, 8082...). Check with:
+### Port 1012 in use
+Script auto-detects free port (1013, 1014...). Check with:
 ```bash
-docker port searxng 8080/tcp
-```
-
-### SearXNG not responding
-```bash
-# Check logs
-docker logs searxng --tail 50
-
-# Restart container
-docker restart searxng
+docker port duckduckgo 1012/tcp
 ```
 
 ### OpenCode config not loading
@@ -249,14 +231,10 @@ cp ~/.config/opencode/opencode.jsonc.backup.YYYYMMDD-HHMMSS ~/.config/opencode/o
 To remove all installed components:
 ```bash
 # Remove MCP servers (npm packages are global, use npm uninstall)
-npm uninstall -g engram-mcp @kevinwatt/mcp-server-searxng @missionsquad/mcp-github mcp-postgres mcp-server-sqlite docker-mcp k8s-mcp
-
-# Remove SearXNG
-docker stop searxng && docker rm searxng
-docker rmi searxng/searxng
+npm uninstall -g engram-mcp @missionsquad/mcp-github mcp-postgres mcp-server-sqlite docker-mcp k8s-mcp
 
 # Remove configs
-rm -rf ~/.config/opencode ~/.config/searxng ~/.engram ~/.codebase-memory
+rm -rf ~/.config/opencode ~/.engram ~/.codebase-memory
 
 # Remove uv
 pip uninstall uv
