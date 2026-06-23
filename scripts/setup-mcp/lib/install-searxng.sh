@@ -92,22 +92,22 @@ pull_searxng_images() {
     log_substep "Pulling SearXNG and Valkey Docker images..."
     
     if [[ "${DRY_RUN:-false}" == "true" ]]; then
-        log_info "$(dry_run_prefix)Would run: ${DOCKER_COMPOSE_CMD} -f ${SEARXNG_COMPOSE_FILE} pull"
+        log_info "$(dry_run_prefix)Would run: ${DOCKER_COMPOSE_CMD} -f \"${SEARXNG_COMPOSE_FILE}\" pull"
         return 0
     fi
     
-    run_cmd "${DOCKER_COMPOSE_CMD} -f ${SEARXNG_COMPOSE_FILE} pull" "Pull SearXNG and Valkey images"
+    run_cmd "${DOCKER_COMPOSE_CMD} -f \"${SEARXNG_COMPOSE_FILE}\" pull" "Pull SearXNG and Valkey images"
 }
 
 stop_existing_searxng() {
     log_substep "Stopping existing SearXNG containers..."
     
     if [[ "${DRY_RUN:-false}" == "true" ]]; then
-        log_info "$(dry_run_prefix)Would run: ${DOCKER_COMPOSE_CMD} -f ${SEARXNG_COMPOSE_FILE} down -v"
+        log_info "$(dry_run_prefix)Would run: ${DOCKER_COMPOSE_CMD} -f \"${SEARXNG_COMPOSE_FILE}\" down -v"
         return 0
     fi
     
-    run_cmd "${DOCKER_COMPOSE_CMD} -f ${SEARXNG_COMPOSE_FILE} down -v" "Stop and remove existing SearXNG containers"
+    run_cmd "${DOCKER_COMPOSE_CMD} -f \"${SEARXNG_COMPOSE_FILE}\" down -v" "Stop and remove existing SearXNG containers"
 }
 
 run_searxng_compose() {
@@ -116,14 +116,14 @@ run_searxng_compose() {
     log_substep "Starting SearXNG with docker-compose on port $port..."
     
     if [[ "${DRY_RUN:-false}" == "true" ]]; then
-        log_info "$(dry_run_prefix)Would run: ${DOCKER_COMPOSE_CMD} -f ${SEARXNG_COMPOSE_FILE} up -d"
+        log_info "$(dry_run_prefix)Would run: ${DOCKER_COMPOSE_CMD} -f \"${SEARXNG_COMPOSE_FILE}\" up -d"
         return 0
     fi
     
     # Update port in .env
     sed -i "s/^SEARXNG_PORT=.*/SEARXNG_PORT=$port/" "${SEARXNG_SCRIPT_DIR}/.env"
     
-    run_cmd "${DOCKER_COMPOSE_CMD} -f ${SEARXNG_COMPOSE_FILE} up -d" "Start SearXNG with docker-compose"
+    run_cmd "${DOCKER_COMPOSE_CMD} -f \"${SEARXNG_COMPOSE_FILE}\" up -d" "Start SearXNG with docker-compose"
 }
 
 wait_for_searxng_health() {
