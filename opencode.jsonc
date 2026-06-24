@@ -3,9 +3,10 @@
 
   // === Models ===
   // NVIDIA NIM Cloud (primary) + Ollama Local (fallback)
-  "model": "nvidia/nemotron-3-ultra-550b-a55b",
-  "small_model": "moonshotai/kimi-k2.6",
+  "model": "nvidia_nim/nvidia/nemotron-3-ultra-550b-a55b",
+  "small_model": "nvidia_nim/moonshotai/kimi-k2.6",
   "autoupdate": true,
+  "logLevel": "INFO",
 
   // === Custom Provider Configurations ===
   "provider": {
@@ -118,9 +119,26 @@
     }
   },
 
+  // === Tool Output Limits ===
+  "tool_output": {
+    "max_lines": 2000,
+    "max_bytes": 51200
+  },
+
+  // === Context Compaction ===
+  "compaction": {
+    "auto": true,
+    "prune": false,
+    "tail_turns": 2
+  },
+
   // === Instructions ===
   // AGENTS.md auto-loaded from ~/.config/opencode/ and repo root
   // Knowledge is now in Engram (mem_search/mem_save) — NOT in knowledge/*.md
+  "instructions": [
+    "AGENTS.md",
+    ".opencode/instructions/*.md"
+  ],
 
   // === Permissions (Least Privilege) ===
   "permission": {
@@ -306,19 +324,17 @@
   "agent": {
     // Build agent — full capability with slight creativity, best quality
     "build": {
-      "model": "nvidia/nemotron-3-ultra-550b-a55b",
+      "model": "nvidia_nim/nvidia/nemotron-3-ultra-550b-a55b",
       "temperature": 0.3
     },
     // Plan agent — read-only analysis, reasoning model
     "plan": {
-      "model": "z-ai/glm-5.1",
+      "model": "nvidia_nim/z-ai/glm-5.1",
       "temperature": 0.1,
-      "tools": {
-        "write": false,
-        "edit": false,
-        "patch": false
-      },
       "permission": {
+        "write": { "*": "deny" },
+        "edit": { "*": "deny" },
+        "patch": { "*": "deny" },
         "bash": {
           "git status": "allow",
           "git diff*": "allow",
@@ -357,14 +373,12 @@
     },
     // Security agent — long context for scanning
     "security": {
-      "model": "moonshotai/kimi-k2.6",
+      "model": "nvidia_nim/moonshotai/kimi-k2.6",
       "temperature": 0.1,
-      "tools": {
-        "write": false,
-        "edit": false,
-        "patch": false
-      },
       "permission": {
+        "write": { "*": "deny" },
+        "edit": { "*": "deny" },
+        "patch": { "*": "deny" },
         "bash": {
           "snyk *": "allow",
           "npm audit *": "allow",
@@ -388,7 +402,7 @@
     },
     // Test writer agent — fast coding model locally
     "test-writer": {
-      "model": "deepseek-coder:6.7b",
+      "model": "ollama/deepseek-coder:6.7b",
       "temperature": 0.2,
       "permission": {
         "write": {
@@ -413,7 +427,7 @@
     },
     // Docs agent — efficient model
     "docs": {
-      "model": "gemma4:e4b",
+      "model": "ollama/gemma4:e4b",
       "temperature": 0.3,
       "permission": {
         "write": {
@@ -429,7 +443,7 @@
 
     // === NEW: Full-Stack Backend Agents ===
     "backend/go": {
-      "model": "deepseek-coder:6.7b",
+      "model": "ollama/deepseek-coder:6.7b",
       "temperature": 0.2,
       "permission": {
         "bash": {
@@ -445,7 +459,7 @@
       "description": "Go backend specialist — writes idiomatic Go, knows stdlib, goroutines, channels, interfaces, and the Go ecosystem. Handles go vet, go test, and go build."
     },
     "backend/rust": {
-      "model": "nvidia/nemotron-3-ultra-550b-a55b",
+      "model": "nvidia_nim/nvidia/nemotron-3-ultra-550b-a55b",
       "temperature": 0.2,
       "permission": {
         "bash": {
@@ -460,7 +474,7 @@
       "description": "Rust specialist — writes safe, idiomatic Rust. Knows ownership, lifetimes, traits, async, and the cargo ecosystem. Handles cargo check, clippy, and test."
     },
     "backend/python": {
-      "model": "qwen3.5:4b",
+      "model": "ollama/qwen3.5:4b",
       "temperature": 0.2,
       "permission": {
         "bash": {
@@ -479,14 +493,12 @@
 
     // === NEW: Infrastructure Agents ===
     "infra/devops": {
-      "model": "moonshotai/kimi-k2.6",
+      "model": "nvidia_nim/moonshotai/kimi-k2.6",
       "temperature": 0.1,
-      "tools": {
-        "write": false,
-        "edit": false,
-        "patch": false
-      },
       "permission": {
+        "write": { "*": "deny" },
+        "edit": { "*": "deny" },
+        "patch": { "*": "deny" },
         "bash": {
           "docker *": "allow",
           "kubectl *": "allow",
@@ -503,7 +515,7 @@
       "description": "Infrastructure specialist — Docker, Kubernetes, Terraform, CI/CD, cloud providers. Read-only analysis, generates manifests and configs. Never applies changes directly."
     },
     "infra/data": {
-      "model": "z-ai/glm-5.1",
+      "model": "nvidia_nim/z-ai/glm-5.1",
       "temperature": 0.2,
       "permission": {
         "bash": {
@@ -522,14 +534,12 @@
       "description": "Data specialist — SQL, NoSQL, schema design, migrations, query optimization, ETL. Read-only for production data, can generate migration files."
     },
     "infra/security": {
-      "model": "nvidia/nemotron-3-ultra-550b-a55b",
+      "model": "nvidia_nim/nvidia/nemotron-3-ultra-550b-a55b",
       "temperature": 0.1,
-      "tools": {
-        "write": false,
-        "edit": false,
-        "patch": false
-      },
       "permission": {
+        "write": { "*": "deny" },
+        "edit": { "*": "deny" },
+        "patch": { "*": "deny" },
         "bash": {
           "snyk *": "allow",
           "trivy *": "allow",
